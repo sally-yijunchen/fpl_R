@@ -1,3 +1,6 @@
+
+source("./init.r")
+
 # my choice 
 my_manager_id <- 1332391
 my_choice<-get_entry_player_picks(my_manager_id,1)

@@ -1,11 +1,6 @@
 #fetch manager history and manager choice 
 
-library(fplscrapR)
-library(dplyr)
-library(doParallel)
-library(data.table)
-registerDoParallel(cores=8)
-
+source("./init.r")
 
 # fpl manager history fetch 
 manager_history_list<-list()
@@ -34,41 +29,10 @@ quantile(managers_summary$mean_rank,probs  =seq(0,1,0.05),na.rm=TRUE)
 selected_manager_ids<-filter(managers_summary,mean_rank<125117,n_season>=5)$manager_id
 
 
-# fetch week1 up choice of selected manager ids 
-selected_manager_choice_list<-list()
-selected_manager_choice_list<-foreach(i=1:length(selected_manager_ids)) %dopar%{
-  id = selected_manager_ids[i]
-  test = get_entry_picks(id,1)
-  test$manager_id<-id
-  test
-}
 
-# extract the player picks 
-selected_manager_pick_list<-list()
-selected_manager_pick_list<-foreach(i=1:length(selected_manager_ids))%dopar%{
-  id = selected_manager_choice_list[[i]]$manager_id
-  test = selected_manager_choice_list[[i]]$picks
-  test$manager_id = id
-  test
-}
-selected_manager_pick_all<-rbindlist(selected_manager_pick_list)
-selected_manager_pick_all<-left_join(selected_manager_pick_all,player_ids,by="element")
-selected_manager_pick_all<-arrange(selected_manager_pick_all,manager_id,position)
-selected_manager_pick_list<-split(selected_manager_pick_all,by="manager_id")
+# elite manager id 
+
+elite_manager_ids<-filter(managers_summary,mean_rank<50000,n_season>=5)$manager_id
 
 
-# selected manager's performance
-selected_manager_points<-list()
-
-selected_manager_points<-list()
-selected_manager_points<-foreach(i=1:length(selected_manager_ids))%dopar%{
-  id = selected_manager_choice_list[[i]]$manager_id
-  point = selected_manager_choice_list[[i]]$entry_history$points
-  test<-data.frame(manager_id = id,point = point)
-  test
-}
-
-selected_manager_points<-rbindlist(selected_manager_points)
-
-
-
+random_manager_ids<-sample(managers_summary$manager_id,length(selected_manager_ids),replace = FALSE)
